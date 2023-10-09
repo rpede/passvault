@@ -3,7 +3,7 @@ import 'package:cryptography/cryptography.dart';
 
 import 'vault_data.dart';
 
-class VaultState {}
+abstract class VaultState {}
 
 class InitialState implements VaultState {}
 
@@ -23,8 +23,16 @@ class CreatingState extends LoadingState {}
 
 class OpeningState extends LoadingState {}
 
-class OpenState extends VaultState {
+class SavingState extends LoadingState {}
+
+class OpenState implements VaultState {
   final SecretKey key;
+  final List<int> salt;
   final List<VaultItem> data;
-  OpenState(this.key, this.data);
+  OpenState(this.key, this.salt, this.data);
+}
+
+class ErrorState implements VaultState {
+  final String message;
+  ErrorState(this.message);
 }

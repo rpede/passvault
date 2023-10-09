@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:passvault/vault_page.dart';
 
 import 'master_password_form.dart';
 import 'vault_cubit.dart';
@@ -13,13 +14,42 @@ class PasswordPage extends StatelessWidget {
     final vault = context.read<VaultCubit>();
     return Scaffold(
       appBar: AppBar(title: Text("PassVault")),
-      body: BlocBuilder<VaultCubit, VaultState>(
-        builder: (context, state) => vault.state is InitializedState
-            ? MasterPasswordForm(
-                vaultExists: (state as InitializedState).vaultExists,
+      body: BlocConsumer<VaultCubit, VaultState>(
+        listener: (context, state) {
+          switch (state) {
+            case OpenState _:
+              Navigator.of(context).pushReplacement(MaterialPageRoute(
+                builder: (context) => const VaultPage(),
+              ));
+            case ErrorState _:
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.red,
+                  content: Text(state.message),
+                ),
+              );
+          }
+        },
+        builder: (context, state) {
+          return switch (state) {
+            InitializedState _ => MasterPasswordForm(
+                vaultExists: state.vaultExists,
                 onSubmitted: vault.enter,
-              )
-            : Center(child: CircularProgressIndicator()),
+              ),
+            LoadingState _ => const Center(child: CircularProgressIndicator()),
+            ErrorState _ => Center(
+                child: TextButton(
+                  onPressed: vault.delete,
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    backgroundColor: Colors.redAccent,
+                  ),
+                  child: const Text("Clear"),
+                ),
+              ),
+            VaultState state => Text(state.toString())
+          };
+        },
       ),
     );
   }

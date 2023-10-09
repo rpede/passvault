@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logging/logging.dart';
 import 'package:cryptography/cryptography.dart';
 
 import 'storage.dart';
@@ -9,6 +9,8 @@ import 'vault_data.dart';
 import 'vault_state.dart';
 
 class VaultCubit extends Cubit<VaultState> {
+  final _log = Logger((VaultCubit).toString());
+
   late Storage storage;
   final KdfAlgorithm keyAlgorithm;
   final Cipher cipher;
@@ -19,8 +21,8 @@ class VaultCubit extends Cubit<VaultState> {
   static VaultCubit safe() {
     return VaultCubit(
       keyAlgorithm: Argon2id(
-        parallelism: 4,
-        memory: 10000, // 10 000 x 1kB block = 10 MB
+        parallelism: 1,
+        memory: 12288, // 10 000 x 1kB block = 10 MB
         iterations: 3,
         hashLength: 256 ~/ 8,
       ),
@@ -54,7 +56,7 @@ class VaultCubit extends Cubit<VaultState> {
     final encrypted =
         await cipher.encryptString(json.encode(data), secretKey: key);
     await storage.save(salt, encrypted);
-    emit(OpenState(key, data));
+    emit(OpenState(key, salt, data));
   }
 
   open(String password) async {
@@ -62,9 +64,50 @@ class VaultCubit extends Cubit<VaultState> {
     final result = await storage.load();
     final key = await keyAlgorithm.deriveKeyFromPassword(
         password: password, nonce: result.$1);
-    final raw =
-        json.decode(await cipher.decryptString(result.$2, secretKey: key));
-    final data = (raw as List<dynamic>).map((e) => e as VaultItem).toList();
-    emit(OpenState(key, data));
+    try {
+      final data =
+          _deserialize(await cipher.decryptString(result.$2, secretKey: key));
+      emit(OpenState(key, result.$1, data));
+    } on SecretBoxAuthenticationError catch (e) {
+      _log.severe(e);
+      emit(ErrorState(e.message));
+    }
   }
+
+  delete() async {
+    await storage.delete();
+    emit(InitializedState(false));
+  }
+
+  addItem(VaultItem item) {
+    assert(state is OpenState);
+    final s = (state as OpenState);
+    emit(OpenState(s.key, s.salt, [...s.data, item]));
+  }
+
+  updateItem(VaultItem oldItem, VaultItem newItem) {
+    assert(state is OpenState);
+    final s = (state as OpenState);
+    final index = s.data.indexOf(oldItem);
+    final newData = [...s.data];
+    newData.removeAt(index);
+    newData.insert(index, newItem);
+    emit(OpenState(s.key, s.salt, newData));
+  }
+
+  save() async {
+    assert(state is OpenState);
+    final s = (state as OpenState);
+    emit(SavingState());
+    final encrypted =
+        await cipher.encryptString(_serialize(s.data), secretKey: s.key);
+    await storage.save(s.salt, encrypted);
+    emit(OpenState(s.key, s.salt, s.data));
+  }
+
+  _serialize(List<VaultItem> data) => json.encode(data,
+      toEncodable: (object) => (object as VaultItem).toJson());
+
+  _deserialize(dynamic data) =>
+      (json.decode(data) as List<dynamic>).map((e) => VaultItem.fromJson(e)).toList();
 }

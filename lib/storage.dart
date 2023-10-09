@@ -40,4 +40,6 @@ class Storage {
     );
     return (salt, encrypted);
   }
+
+  delete() => _prefs.clear;
 }

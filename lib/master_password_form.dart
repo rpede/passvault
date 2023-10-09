@@ -42,7 +42,7 @@ class _MasterPasswordFormState extends State<MasterPasswordForm> {
                   widget.onSubmitted(_passwordController.text);
                 }
               },
-              child: Text("Create"),
+              child: Text(widget.vaultExists ? "Open" : "Create"),
             ),
           ),
         ]),
