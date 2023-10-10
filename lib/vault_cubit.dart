@@ -22,7 +22,7 @@ class VaultCubit extends Cubit<VaultState> {
     return VaultCubit(
       keyAlgorithm: Argon2id(
         parallelism: 1,
-        memory: 12288, // 10 000 x 1kB block = 10 MB
+        memory: 12288,
         iterations: 3,
         hashLength: 256 ~/ 8,
       ),
@@ -95,6 +95,13 @@ class VaultCubit extends Cubit<VaultState> {
     emit(OpenState(s.key, s.salt, newData));
   }
 
+  removeItem(VaultItem item) {
+    final s = (state as OpenState);
+    final newData = [...s.data];
+    newData.remove(item);
+    emit(OpenState(s.key, s.salt, newData));
+  }
+
   save() async {
     assert(state is OpenState);
     final s = (state as OpenState);
@@ -108,6 +115,7 @@ class VaultCubit extends Cubit<VaultState> {
   _serialize(List<VaultItem> data) => json.encode(data,
       toEncodable: (object) => (object as VaultItem).toJson());
 
-  _deserialize(dynamic data) =>
-      (json.decode(data) as List<dynamic>).map((e) => VaultItem.fromJson(e)).toList();
+  _deserialize(dynamic data) => (json.decode(data) as List<dynamic>)
+      .map((e) => VaultItem.fromJson(e))
+      .toList();
 }
