@@ -31,7 +31,6 @@ class _VaultItemPageState extends State<VaultItemPage> {
 
   @override
   Widget build(BuildContext context) {
-    final vault = context.watch<VaultCubit>();
     return Scaffold(
       appBar: AppBar(title: Text("Add new item")),
       body: Padding(
@@ -76,18 +75,24 @@ class _VaultItemPageState extends State<VaultItemPage> {
               ],
             ),
             Padding(padding: EdgeInsets.symmetric(vertical: 16)),
-            if (vault.state is SavingState)
-              CircularProgressIndicator()
-            else
-              ElevatedButton(
-                  onPressed: () => _save(vault), child: const Text("Save"))
+            BlocBuilder<VaultCubit, VaultState>(builder: (context, state) {
+              if (state is SavingState) {
+                return CircularProgressIndicator();
+              } else {
+                return ElevatedButton(
+                  onPressed: () async => await _save(context),
+                  child: const Text("Save"),
+                );
+              }
+            })
           ],
         ),
       ),
     );
   }
 
-  void _save(VaultCubit vault) {
+  Future _save(BuildContext context) async {
+    final vault = context.read<VaultCubit>();
     final item = VaultItem(
       name: _nameCtrl.text,
       username: _usernameCtrl.text,
@@ -98,6 +103,7 @@ class _VaultItemPageState extends State<VaultItemPage> {
     } else {
       vault.updateItem(widget.item!, item);
     }
-    vault.save();
+    await vault.save();
+    Navigator.of(context).pop();
   }
 }
