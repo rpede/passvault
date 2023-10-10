@@ -15,6 +15,9 @@ class VaultCubit extends Cubit<VaultState> {
   final KdfAlgorithm keyAlgorithm;
   final Cipher cipher;
 
+  SecretKey? _key;
+  List<int>? _salt;
+
   VaultCubit({required this.keyAlgorithm, required this.cipher})
       : super(InitialState());
 
@@ -50,24 +53,25 @@ class VaultCubit extends Cubit<VaultState> {
     assert(state == InitializedState(false));
     emit(CreatingState());
     final data = VaultData.empty();
-    final salt = List<int>.generate(32, (i) => SecureRandom.safe.nextInt(256));
-    final key = await keyAlgorithm.deriveKeyFromPassword(
-        password: password, nonce: salt);
+    _salt = List<int>.generate(32, (i) => SecureRandom.safe.nextInt(256));
+    _key = await keyAlgorithm.deriveKeyFromPassword(
+        password: password, nonce: _salt!);
     final encrypted =
-        await cipher.encryptString(json.encode(data), secretKey: key);
-    await storage.save(salt, encrypted);
-    emit(OpenState(key, salt, data));
+        await cipher.encryptString(json.encode(data), secretKey: _key!);
+    await storage.save(_salt!, encrypted);
+    emit(OpenState(data));
   }
 
   open(String password) async {
     assert(state == InitializedState(true));
     final result = await storage.load();
-    final key = await keyAlgorithm.deriveKeyFromPassword(
+    _salt = result.$1;
+    _key = await keyAlgorithm.deriveKeyFromPassword(
         password: password, nonce: result.$1);
     try {
       final data =
-          _deserialize(await cipher.decryptString(result.$2, secretKey: key));
-      emit(OpenState(key, result.$1, data));
+          _deserialize(await cipher.decryptString(result.$2, secretKey: _key!));
+      emit(OpenState(data));
     } on SecretBoxAuthenticationError catch (e) {
       _log.severe(e);
       emit(ErrorState(e.message));
@@ -81,35 +85,35 @@ class VaultCubit extends Cubit<VaultState> {
 
   addItem(VaultItem item) {
     assert(state is OpenState);
-    final s = (state as OpenState);
-    emit(OpenState(s.key, s.salt, [...s.data, item]));
+    emit(OpenState([...(state as OpenState).data, item]));
   }
 
   updateItem(VaultItem oldItem, VaultItem newItem) {
     assert(state is OpenState);
-    final s = (state as OpenState);
-    final index = s.data.indexOf(oldItem);
-    final newData = [...s.data];
+    final data = (state as OpenState).data;
+    final index = data.indexOf(oldItem);
+    final newData = [...data];
     newData.removeAt(index);
     newData.insert(index, newItem);
-    emit(OpenState(s.key, s.salt, newData));
+    emit(OpenState(newData));
   }
 
   removeItem(VaultItem item) {
-    final s = (state as OpenState);
-    final newData = [...s.data];
+    assert(state is OpenState);
+    final data = (state as OpenState).data;
+    final newData = [...data];
     newData.remove(item);
-    emit(OpenState(s.key, s.salt, newData));
+    emit(OpenState(newData));
   }
 
   save() async {
     assert(state is OpenState);
-    final s = (state as OpenState);
+    final data = (state as OpenState).data;
     emit(SavingState());
     final encrypted =
-        await cipher.encryptString(_serialize(s.data), secretKey: s.key);
-    await storage.save(s.salt, encrypted);
-    emit(OpenState(s.key, s.salt, s.data));
+        await cipher.encryptString(_serialize(data), secretKey: _key!);
+    await storage.save(_salt!, encrypted);
+    emit(OpenState(data));
   }
 
   _serialize(List<VaultItem> data) => json.encode(data,

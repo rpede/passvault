@@ -26,10 +26,8 @@ class OpeningState extends LoadingState {}
 class SavingState extends LoadingState {}
 
 class OpenState implements VaultState {
-  final SecretKey key;
-  final List<int> salt;
   final List<VaultItem> data;
-  OpenState(this.key, this.salt, this.data);
+  OpenState(this.data);
 }
 
 class ErrorState implements VaultState {
