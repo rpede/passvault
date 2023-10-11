@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:cryptography/cryptography.dart';
+import 'package:passvault/infrastructure/serializer.dart';
 import 'package:passvault/infrastructure/storage.dart';
 
 import 'vault_data.dart';
@@ -69,8 +70,8 @@ class VaultCubit extends Cubit<VaultState> {
     _key = await keyAlgorithm.deriveKeyFromPassword(
         password: password, nonce: result.$1);
     try {
-      final data =
-          _deserialize(await cipher.decryptString(result.$2, secretKey: _key!));
+      final data = Serializer.deserialize(
+          await cipher.decryptString(result.$2, secretKey: _key!));
       emit(OpenState(data));
     } on SecretBoxAuthenticationError catch (e) {
       _log.severe(e);
@@ -110,16 +111,9 @@ class VaultCubit extends Cubit<VaultState> {
     assert(state is OpenState);
     final data = (state as OpenState).data;
     emit(SavingState());
-    final encrypted =
-        await cipher.encryptString(_serialize(data), secretKey: _key!);
+    final encrypted = await cipher.encryptString(Serializer.serialize(data),
+        secretKey: _key!);
     await storage.save(_salt!, encrypted);
     emit(OpenState(data));
   }
-
-  _serialize(List<VaultItem> data) => json.encode(data,
-      toEncodable: (object) => (object as VaultItem).toJson());
-
-  _deserialize(dynamic data) => (json.decode(data) as List<dynamic>)
-      .map((e) => VaultItem.fromJson(e))
-      .toList();
 }
