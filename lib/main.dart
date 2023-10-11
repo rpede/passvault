@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
-import 'password_page.dart';
-import 'vault_cubit.dart';
+import 'package:passvault/core/vault_cubit.dart';
+import 'pages/password/password_page.dart';
 
 void main() {
   Logger.root.onRecord.listen((record) {

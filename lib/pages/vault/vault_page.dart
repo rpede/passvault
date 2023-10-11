@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:passvault/vault_cubit.dart';
-import 'package:passvault/vault_data.dart';
-import 'package:passvault/vault_item_page.dart';
-import 'package:passvault/vault_state.dart';
+import 'package:passvault/core/vault_cubit.dart';
+import 'package:passvault/core/vault_data.dart';
+import 'package:passvault/core/vault_state.dart';
+import 'package:passvault/pages/vault_item/vault_item_page.dart';
 
 typedef MenuAction = void Function();
 

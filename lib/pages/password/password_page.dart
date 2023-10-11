@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:passvault/vault_page.dart';
+import 'package:passvault/core/vault_cubit.dart';
+import 'package:passvault/core/vault_state.dart';
+import 'package:passvault/pages/vault/vault_page.dart';
 
 import 'master_password_form.dart';
-import 'vault_cubit.dart';
-import 'vault_state.dart';
 
 class PasswordPage extends StatelessWidget {
   const PasswordPage({super.key});

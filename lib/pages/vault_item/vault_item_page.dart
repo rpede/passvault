@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:passvault/password_generator.dart';
-import 'package:passvault/vault_cubit.dart';
-import 'package:passvault/vault_data.dart';
-import 'package:passvault/vault_state.dart';
+import 'package:passvault/core/vault_cubit.dart';
+import 'package:passvault/core/vault_data.dart';
+import 'package:passvault/core/vault_state.dart';
+import 'package:passvault/infrastructure/password_generator.dart';
 
 class VaultItemPage extends StatefulWidget {
   VaultItem? item;
