@@ -6,18 +6,18 @@ import 'package:passvault/core/vault_state.dart';
 import 'package:passvault/infrastructure/password_generator.dart';
 
 class VaultItemPage extends StatefulWidget {
-  VaultItem? item;
+  final VaultItem? item;
 
-  VaultItemPage({super.key, this.item});
+  const VaultItemPage({super.key, this.item});
 
   @override
   State<VaultItemPage> createState() => _VaultItemPageState();
 }
 
 class _VaultItemPageState extends State<VaultItemPage> {
-  late final _nameCtrl;
-  late final _usernameCtrl;
-  late final _passwordCtrl;
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _usernameCtrl;
+  late final TextEditingController _passwordCtrl;
   var showPassword = false;
 
   @override
@@ -55,7 +55,7 @@ class _VaultItemPageState extends State<VaultItemPage> {
           child: TextFormField(
             controller: _passwordCtrl,
             obscureText: !showPassword,
-            decoration: InputDecoration(label: Text("Password")),
+            decoration: const InputDecoration(label: Text("Password")),
           ),
         ),
         const Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
@@ -65,10 +65,9 @@ class _VaultItemPageState extends State<VaultItemPage> {
         ),
         const Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
         IconButton.outlined(
-            onPressed: () {
-              _passwordCtrl.text = PasswordGenerator.generate();
-            },
-            icon: Icon(Icons.casino)),
+          onPressed: () => _passwordCtrl.text = PasswordGenerator.generate(),
+          icon: const Icon(Icons.casino),
+        ),
         const Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
       ],
     );
@@ -77,21 +76,21 @@ class _VaultItemPageState extends State<VaultItemPage> {
   TextFormField _usernameField() {
     return TextFormField(
       controller: _usernameCtrl,
-      decoration: InputDecoration(label: Text("Username")),
+      decoration: const InputDecoration(label: Text("Username")),
     );
   }
 
   TextFormField _nameField() {
     return TextFormField(
       controller: _nameCtrl,
-      decoration: InputDecoration(label: Text("Name/Site")),
+      decoration: const InputDecoration(label: Text("Name/Site")),
     );
   }
 
   BlocBuilder<VaultCubit, VaultState> _saveButton() {
     return BlocBuilder<VaultCubit, VaultState>(builder: (context, state) {
       if (state is SavingState) {
-        return CircularProgressIndicator();
+        return const CircularProgressIndicator();
       } else {
         return ElevatedButton(
           onPressed: () async => await _onSave(context),
@@ -101,7 +100,7 @@ class _VaultItemPageState extends State<VaultItemPage> {
     });
   }
 
-  Future _onSave(BuildContext context) async {
+  _onSave(BuildContext context) {
     final vault = context.read<VaultCubit>();
     final item = VaultItem(
       name: _nameCtrl.text,
@@ -113,7 +112,7 @@ class _VaultItemPageState extends State<VaultItemPage> {
     } else {
       vault.updateItem(widget.item!, item);
     }
-    await vault.save();
+    vault.save();
     Navigator.of(context).pop();
   }
 }
