@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:cryptography/cryptography.dart';
+import 'package:passvault/infrastructure/storage.dart';
 
-import 'storage.dart';
 import 'vault_data.dart';
 import 'vault_state.dart';
 

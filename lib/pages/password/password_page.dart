@@ -4,7 +4,7 @@ import 'package:passvault/core/vault_cubit.dart';
 import 'package:passvault/core/vault_state.dart';
 import 'package:passvault/pages/vault/vault_page.dart';
 
-import 'master_password_form.dart';
+import 'password_form.dart';
 
 class PasswordPage extends StatelessWidget {
   const PasswordPage({super.key});
@@ -13,7 +13,7 @@ class PasswordPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final vault = context.read<VaultCubit>();
     return Scaffold(
-      appBar: AppBar(title: Text("PassVault")),
+      appBar: AppBar(title: const Text("PassVault")),
       body: BlocConsumer<VaultCubit, VaultState>(
         listener: (context, state) {
           switch (state) {
@@ -32,7 +32,7 @@ class PasswordPage extends StatelessWidget {
         },
         builder: (context, state) {
           return switch (state) {
-            InitializedState _ => MasterPasswordForm(
+            InitializedState _ => PasswordForm(
                 vaultExists: state.vaultExists,
                 onSubmitted: vault.enter,
               ),

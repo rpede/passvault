@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:passvault/core/vault_cubit.dart';
 import 'package:passvault/core/vault_data.dart';
@@ -32,66 +31,77 @@ class _VaultItemPageState extends State<VaultItemPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Add new item")),
+      appBar: AppBar(title: const Text("Add new item")),
       body: Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Column(
           children: [
-            TextFormField(
-              controller: _nameCtrl,
-              decoration: InputDecoration(label: Text("Name/Site")),
-            ),
-            TextFormField(
-              controller: _usernameCtrl,
-              decoration: InputDecoration(label: Text("Username")),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _passwordCtrl,
-                    obscureText: !showPassword,
-                    decoration: InputDecoration(label: Text("Password")),
-                  ),
-                ),
-                Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
-                IconButton.outlined(
-                    onPressed: () {
-                      setState(() {
-                        showPassword = !showPassword;
-                      });
-                    },
-                    icon: Icon(showPassword
-                        ? Icons.visibility
-                        : Icons.visibility_off)),
-                Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
-                IconButton.outlined(
-                    onPressed: () {
-                      _passwordCtrl.text = PasswordGenerator.generate();
-                    },
-                    icon: Icon(Icons.casino)),
-                Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
-              ],
-            ),
-            Padding(padding: EdgeInsets.symmetric(vertical: 16)),
-            BlocBuilder<VaultCubit, VaultState>(builder: (context, state) {
-              if (state is SavingState) {
-                return CircularProgressIndicator();
-              } else {
-                return ElevatedButton(
-                  onPressed: () async => await _save(context),
-                  child: const Text("Save"),
-                );
-              }
-            })
+            _nameField(),
+            _usernameField(),
+            _passwordField(),
+            const Padding(padding: EdgeInsets.symmetric(vertical: 16)),
+            _saveButton()
           ],
         ),
       ),
     );
   }
 
-  Future _save(BuildContext context) async {
+  Row _passwordField() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Expanded(
+          child: TextFormField(
+            controller: _passwordCtrl,
+            obscureText: !showPassword,
+            decoration: InputDecoration(label: Text("Password")),
+          ),
+        ),
+        const Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
+        IconButton.outlined(
+          onPressed: () => setState(() => showPassword = !showPassword),
+          icon: Icon(showPassword ? Icons.visibility : Icons.visibility_off),
+        ),
+        const Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
+        IconButton.outlined(
+            onPressed: () {
+              _passwordCtrl.text = PasswordGenerator.generate();
+            },
+            icon: Icon(Icons.casino)),
+        const Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
+      ],
+    );
+  }
+
+  TextFormField _usernameField() {
+    return TextFormField(
+      controller: _usernameCtrl,
+      decoration: InputDecoration(label: Text("Username")),
+    );
+  }
+
+  TextFormField _nameField() {
+    return TextFormField(
+      controller: _nameCtrl,
+      decoration: InputDecoration(label: Text("Name/Site")),
+    );
+  }
+
+  BlocBuilder<VaultCubit, VaultState> _saveButton() {
+    return BlocBuilder<VaultCubit, VaultState>(builder: (context, state) {
+      if (state is SavingState) {
+        return CircularProgressIndicator();
+      } else {
+        return ElevatedButton(
+          onPressed: () async => await _onSave(context),
+          child: const Text("Save"),
+        );
+      }
+    });
+  }
+
+  Future _onSave(BuildContext context) async {
     final vault = context.read<VaultCubit>();
     final item = VaultItem(
       name: _nameCtrl.text,

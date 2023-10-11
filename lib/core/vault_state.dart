@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:cryptography/cryptography.dart';
 
 import 'vault_data.dart';
 
@@ -26,7 +25,7 @@ class OpeningState extends LoadingState {}
 class SavingState extends LoadingState {}
 
 class OpenState implements VaultState {
-  final List<VaultItem> data;
+  final VaultData data;
   OpenState(this.data);
 }
 
