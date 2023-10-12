@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 class PasswordForm extends StatefulWidget {
   final bool vaultExists;
+  final bool invalidPassword;
   final void Function(String password) onSubmitted;
 
   const PasswordForm({
     super.key,
     required this.vaultExists,
+    required this.invalidPassword,
     required this.onSubmitted,
   });
 
@@ -17,6 +19,7 @@ class PasswordForm extends StatefulWidget {
 class _PasswordFormState extends State<PasswordForm> {
   final _formKey = GlobalKey<FormState>();
   final _passwordController = TextEditingController();
+  bool _tryAgain = false;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +61,13 @@ class _PasswordFormState extends State<PasswordForm> {
           widget.onSubmitted(_passwordController.text);
         }
       },
-      child: Text(widget.vaultExists ? "Open" : "Create"),
+      child: Text(
+        widget.vaultExists
+            ? widget.invalidPassword
+                ? "Try again"
+                : "Open"
+            : "Create",
+      ),
     );
   }
 }

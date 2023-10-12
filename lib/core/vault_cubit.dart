@@ -38,20 +38,24 @@ class VaultCubit extends Cubit<VaultState> {
     assert(state is InitialState);
     emit(InitializingState());
     storage = await Storage.create();
-    emit(InitializedState(storage.vaultExists));
+    if (storage.vaultExists) {
+      emit(VaultExistsState());
+    } else {
+      emit(VaultDoesNotExistsState());
+    }
   }
 
   enter(String password) async {
     assert(state is InitializedState);
-    if ((state as InitializedState).vaultExists) {
-      await open(password);
-    } else {
+    if (state is VaultDoesNotExistsState) {
       await create(password);
+    } else {
+      await open(password);
     }
   }
 
   create(String password) async {
-    assert(state == InitializedState(false));
+    assert(state == VaultDoesNotExistsState());
     emit(CreatingState());
     final data = VaultData.empty();
     _salt = List<int>.generate(32, (i) => SecureRandom.safe.nextInt(256));
@@ -64,7 +68,7 @@ class VaultCubit extends Cubit<VaultState> {
   }
 
   open(String password) async {
-    assert(state == InitializedState(true));
+    assert(state is VaultExistsState);
     final result = await storage.load();
     _salt = result.$1;
     _key = await keyAlgorithm.deriveKeyFromPassword(
@@ -75,13 +79,13 @@ class VaultCubit extends Cubit<VaultState> {
       emit(OpenState(data));
     } on SecretBoxAuthenticationError catch (e) {
       _log.severe(e);
-      emit(ErrorState(e.message));
+      emit(InvalidPasswordState());
     }
   }
 
   delete() async {
     await storage.delete();
-    emit(InitializedState(false));
+    emit(VaultDoesNotExistsState());
   }
 
   addItem(VaultItem item) {

@@ -33,7 +33,8 @@ class PasswordPage extends StatelessWidget {
         builder: (context, state) {
           return switch (state) {
             InitializedState _ => PasswordForm(
-                vaultExists: state.vaultExists,
+                vaultExists: state is VaultExistsState,
+                invalidPassword: state is InvalidPasswordState,
                 onSubmitted: vault.enter,
               ),
             LoadingState _ => const Center(child: CircularProgressIndicator()),

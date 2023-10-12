@@ -10,13 +10,13 @@ abstract class LoadingState implements VaultState {}
 
 class InitializingState implements LoadingState {}
 
-class InitializedState extends Equatable implements VaultState {
-  final bool vaultExists;
-  InitializedState(this.vaultExists);
+class InitializedState implements VaultState {}
 
-  @override
-  List<Object?> get props => [vaultExists];
-}
+class VaultDoesNotExistsState implements InitializedState {}
+
+class VaultExistsState implements InitializedState {}
+
+class InvalidPasswordState implements VaultExistsState {}
 
 class CreatingState extends LoadingState {}
 
@@ -24,12 +24,18 @@ class OpeningState extends LoadingState {}
 
 class SavingState extends LoadingState {}
 
-class OpenState implements VaultState {
+class OpenState extends Equatable implements VaultState {
   final VaultData data;
   OpenState(this.data);
+
+  @override
+  List<Object?> get props => [data];
 }
 
-class ErrorState implements VaultState {
+class ErrorState extends Equatable implements VaultState {
   final String message;
   ErrorState(this.message);
+
+  @override
+  List<Object?> get props => [message];
 }
