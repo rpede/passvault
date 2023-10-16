@@ -19,7 +19,6 @@ class PasswordForm extends StatefulWidget {
 class _PasswordFormState extends State<PasswordForm> {
   final _formKey = GlobalKey<FormState>();
   final _passwordController = TextEditingController();
-  bool _tryAgain = false;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +45,7 @@ class _PasswordFormState extends State<PasswordForm> {
       validator: (value) {
         const minLength = 8;
         final invalid = value == null || value.length < minLength;
-        return invalid ? "Must be at least ${minLength}" : null;
+        return invalid ? "Must be at least $minLength" : null;
       },
       obscureText: true,
       keyboardType: TextInputType.visiblePassword,

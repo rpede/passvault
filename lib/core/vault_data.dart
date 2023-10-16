@@ -5,7 +5,7 @@ class VaultItem {
   final String username;
   final String password;
 
-  VaultItem({
+  const VaultItem({
     required this.name,
     required this.username,
     required this.password,

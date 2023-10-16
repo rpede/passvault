@@ -26,7 +26,7 @@ class SavingState extends LoadingState {}
 
 class OpenState extends Equatable implements VaultState {
   final VaultData data;
-  OpenState(this.data);
+  const OpenState(this.data);
 
   @override
   List<Object?> get props => [data];
@@ -34,7 +34,7 @@ class OpenState extends Equatable implements VaultState {
 
 class ErrorState extends Equatable implements VaultState {
   final String message;
-  ErrorState(this.message);
+  const ErrorState(this.message);
 
   @override
   List<Object?> get props => [message];
