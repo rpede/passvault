@@ -2,55 +2,42 @@ import 'package:equatable/equatable.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 import '../models/credential.dart';
-import 'failures.dart';
 
-enum VaultStatus {
-  open,
-  closed,
-  absent,
-  opening,
-  saving,
+abstract class VaultState {}
+
+abstract class FailedState {}
+
+abstract class ClosedState implements VaultState {}
+
+class AbsentState implements ClosedState {}
+
+class ExistsState implements ClosedState {}
+
+class FailedToCreateState implements AbsentState, FailedState {}
+
+class OpeningState extends VaultState {}
+
+class FailedToOpenState implements ExistsState, FailedState {}
+
+class SavingState extends VaultState {}
+
+class FailedToSaveState extends OpenState implements FailedState {
+  FailedToSaveState(super.credentials);
 }
 
-class VaultState extends Equatable {
+class OpenState extends Equatable implements VaultState {
   final IList<Credential> credentials;
-  final VaultStatus status;
-  final Failure? failure;
 
-  const VaultState({
-    required this.credentials,
-    required this.status,
-    this.failure,
-  });
-
-  VaultState.initial(bool exists)
-      : credentials = <Credential>[].lock,
-        status = exists ? VaultStatus.closed : VaultStatus.absent,
-        failure = null;
-
-  VaultState failed({VaultStatus? status, required Failure reason}) {
-    return copyWith(status: status, failure: reason);
-  }
-
-  VaultState ok({
-    IList<Credential>? credentials,
-    required VaultStatus status,
-  }) {
-    return copyWith(credentials: credentials, status: status, failure: null);
-  }
-
-  VaultState copyWith({
-    IList<Credential>? credentials,
-    VaultStatus? status,
-    Failure? failure,
-  }) {
-    return VaultState(
-      credentials: credentials ?? this.credentials,
-      status: status ?? this.status,
-      failure: failure,
-    );
-  }
+  OpenState(this.credentials);
 
   @override
-  List<Object?> get props => [credentials, status];
+  List<Object?> get props => [credentials];
+}
+
+class ErrorState extends Equatable implements VaultState {
+  final String message;
+  const ErrorState(this.message);
+
+  @override
+  List<Object?> get props => [message];
 }

@@ -1,7 +1,6 @@
 import '../infrastructure/storage.dart';
 import '../infrastructure/protection.dart';
 import '../models/credential.dart';
-import 'failures.dart';
 import '../models/open_vault.dart';
 
 
@@ -39,4 +38,7 @@ class VaultApi {
   Future<void> delete() async {
     await _storage.delete();
   }
+}
+
+class VaultNotFoundFailure implements Exception {
 }

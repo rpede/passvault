@@ -151,7 +151,7 @@ class SaveButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<VaultCubit, VaultState>(builder: (context, state) {
-      if (state.status == VaultStatus.saving) {
+      if (state is SavingState) {
         return const CircularProgressIndicator();
       } else {
         return ElevatedButton(

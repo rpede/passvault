@@ -28,10 +28,15 @@ class VaultScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(title: const Text("Your Vault")),
         body: BlocConsumer<VaultCubit, VaultState>(
-          listenWhen: (previous, current) =>
-              current.status == VaultStatus.closed,
-          listener: (context, state) => Navigator.pop(context),
-          builder: (context, state) => CredentialList(credentials: state.credentials),
+          listenWhen: (previous, current) => current is ClosedState,
+          listener: (context, state) {
+            if (Navigator.of(context).canPop()) {
+              Navigator.pop(context);
+            }
+          },
+          buildWhen: (previous, current) => current is OpenState,
+          builder: (context, state) =>
+              CredentialList(credentials: (state as OpenState).credentials),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () => _addNewCredential(context),
@@ -53,13 +58,13 @@ class CredentialList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      itemBuilder: (context, index) => CredentialListTile(credential: credentials[index]),
+      itemBuilder: (context, index) =>
+          CredentialListTile(credential: credentials[index]),
       separatorBuilder: (context, index) => const Divider(),
       itemCount: credentials.length,
     );
   }
 }
-
 
 class CredentialListTile extends StatelessWidget {
   const CredentialListTile({
@@ -78,11 +83,13 @@ class CredentialListTile extends StatelessWidget {
         onSelected: (MenuAction action) => action.call(),
         itemBuilder: (BuildContext context) => <PopupMenuEntry<MenuAction>>[
           PopupMenuItem<MenuAction>(
-            value: () => Clipboard.setData(ClipboardData(text: credential.username)),
+            value: () =>
+                Clipboard.setData(ClipboardData(text: credential.username)),
             child: const Text('Copy username'),
           ),
           PopupMenuItem<MenuAction>(
-            value: () => Clipboard.setData(ClipboardData(text: credential.password)),
+            value: () =>
+                Clipboard.setData(ClipboardData(text: credential.password)),
             child: const Text('Copy password'),
           ),
           PopupMenuItem<MenuAction>(

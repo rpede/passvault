@@ -16,20 +16,20 @@ class PasswordScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: BlocConsumer<VaultCubit, VaultState>(
-        listenWhen: (previous, current) => current.status == VaultStatus.open,
+        listenWhen: (previous, current) => current is OpenState,
         listener: (context, state) {
           Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => const VaultScreen()),
           );
         },
         builder: (context, state) {
-          return switch (state.status) {
-            VaultStatus.absent => PasswordForm(
+          return switch (state) {
+            AbsentState _ => PasswordForm(
                 onSubmit: (password) =>
                     context.read<VaultCubit>().createVault(password),
                 buttonText: "Create",
               ),
-            VaultStatus.closed => PasswordForm(
+            ExistsState _ => PasswordForm(
                 onSubmit: (password) =>
                     context.read<VaultCubit>().openVault(password),
                 buttonText: "Open",

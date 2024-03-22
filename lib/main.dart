@@ -34,10 +34,15 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'PasswordManager',
       home: BlocListener<VaultCubit, VaultState>(
-          listenWhen: (previous, current) => current.failure != null,
+          listenWhen: (previous, current) => current is FailedState,
           listener: (context, state) {
+            final text = switch (state) {
+              FailedToOpenState _ =>
+                "Unable to open vault.\nDid you type the correct password?",
+              _ => "An unknown error has occurred.\nSee log for details."
+            };
             ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text(state.failure!.message)));
+                .showSnackBar(SnackBar(content: Text(text)));
           },
           child: const PasswordScreen()),
     );
