@@ -1,32 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
-import 'package:passvault/core/vault_cubit.dart';
-import 'pages/password/password_page.dart';
+import 'package:logging_appenders/logging_appenders.dart';
 
-void main() {
-  Logger.root.onRecord.listen((record) {
-    print('${record.level.name}: ${record.time}: ${record.message}');
-  });
+import 'core/vault_api.dart';
+import 'core/vault_cubit.dart';
+import 'core/vault_state.dart';
+import 'infrastructure/protection.dart';
+import 'infrastructure/storage.dart';
+import 'logger_bloc_observer.dart';
+import 'ui/password_screen.dart';
 
-  runApp(const PassVaultApp());
+void main() async {
+  PrintAppender(formatter: const ColorFormatter()).attachToLogger(Logger.root);
+  Bloc.observer = LoggerBlocObserver();
+
+  WidgetsFlutterBinding.ensureInitialized();
+  final storage = await Storage.create();
+
+  runApp(BlocProvider(
+    create: (context) => VaultCubit(
+      VaultApi(protector: Protection.sensibleDefaults(), storage: storage),
+    ),
+    child: const MyApp(),
+  ));
 }
 
-class PassVaultApp extends StatelessWidget {
-  const PassVaultApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => VaultCubit.safe()..initialize(),
-      child: MaterialApp(
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
-          useMaterial3: true,
-        ),
-        home: PasswordPage(),
-      ),
+    return MaterialApp(
+      title: 'PasswordManager',
+      home: BlocListener<VaultCubit, VaultState>(
+          listenWhen: (previous, current) => current.failure != null,
+          listener: (context, state) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(state.failure!.message)));
+          },
+          child: const PasswordScreen()),
     );
   }
 }
