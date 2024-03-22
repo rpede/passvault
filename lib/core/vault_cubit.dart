@@ -92,7 +92,17 @@ class VaultCubit extends Cubit<VaultState> {
     }
   }
 
-  Future<void> addCredential(Credential credential) async {
+  Future<void> addCredential(Credential credential) async =>
+      _changeCredentials((credentials) => credentials.add(credential));
+
+  Future<void> updateCredential(Credential credential) async =>
+      _changeCredentials((credentials) => credentials.remove(credential));
+
+  Future<void> removeCredential(Credential credential) async =>
+      _changeCredentials((credentials) => credentials.remove(credential));
+
+  Future<void> _changeCredentials(
+      void Function(List<Credential>) change) async {
     // Requires that the vault have opened.
     assert(state.status == VaultStatus.open);
 
@@ -100,8 +110,9 @@ class VaultCubit extends Cubit<VaultState> {
     emit(state.ok(status: VaultStatus.saving));
     try {
       // "unlock" (getting mutable copy) credentials.
-      // Then add the new credential.
-      final credentials = state.credentials.unlock..add(credential);
+      // Then do then change.
+      final credentials = state.credentials.unlock;
+      change(credentials);
 
       // Save the new credentials immediately.
       await api.save(OpenVault(credentials: credentials, key: _key!));

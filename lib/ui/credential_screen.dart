@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../core/vault_cubit.dart';
 import '../core/vault_state.dart';
+import '../infrastructure/password_generator.dart';
 import '../models/credential.dart';
 
 class CredentialScreen extends StatefulWidget {
@@ -24,8 +25,10 @@ class _CredentialScreenState extends State<CredentialScreen> {
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(text: widget.existingCredential?.name);
-    _usernameCtrl = TextEditingController(text: widget.existingCredential?.username);
-    _passwordCtrl = TextEditingController(text: widget.existingCredential?.password);
+    _usernameCtrl =
+        TextEditingController(text: widget.existingCredential?.username);
+    _passwordCtrl =
+        TextEditingController(text: widget.existingCredential?.password);
   }
 
   @override
@@ -46,7 +49,7 @@ class _CredentialScreenState extends State<CredentialScreen> {
     if (widget.existingCredential == null) {
       vault.addCredential(credential);
     } else {
-      // TODO update existing credential
+      vault.updateCredential(credential);
     }
     Navigator.of(context).pop();
   }
@@ -133,7 +136,7 @@ class _PasswordFieldState extends State<PasswordField> {
         const Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
         IconButton.outlined(
           onPressed: () {
-            // TODO generate a random password
+            widget.controller.text = PasswordGenerator.generate();
           },
           icon: const Icon(Icons.casino),
         ),
